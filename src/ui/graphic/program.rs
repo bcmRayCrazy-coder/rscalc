@@ -94,11 +94,11 @@ impl ProgramManager {
             ManagedProgram::RAW {
                 vert_shader: include_str!(concat!(
                     env!("CARGO_MANIFEST_DIR"),
-                    "/static/shader/vert.hlsl"
+                    "/static/shader/default.vsh"
                 )),
                 frag_shader: include_str!(concat!(
                     env!("CARGO_MANIFEST_DIR"),
-                    "/static/shader/frag.hlsl"
+                    "/static/shader/default.fsh"
                 )),
             },
         );
@@ -107,11 +107,11 @@ impl ProgramManager {
             ManagedProgram::RAW {
                 vert_shader: include_str!(concat!(
                     env!("CARGO_MANIFEST_DIR"),
-                    "/static/shader/drawable/line_vert.hlsl"
+                    "/static/shader/drawable/line.vsh"
                 )),
                 frag_shader: include_str!(concat!(
                     env!("CARGO_MANIFEST_DIR"),
-                    "/static/shader/drawable/line_frag.hlsl"
+                    "/static/shader/drawable/line.fsh"
                 )),
             },
         );
