@@ -92,7 +92,7 @@ impl GraphicDrawable for DrawableLine {
 
             let mvp_transform = GraphicMVPMatrix::from_camera(camera, Mat4::IDENTITY);
             mvp_transform.assign_gl_program(gl, self.program);
-            let color_location = gl.get_uniform_location(self.program, "lineColor");
+            let color_location = gl.get_uniform_location(self.program, "color");
             if let Some(loc) = color_location {
                 gl.uniform_4_f32_slice(Some(&loc), &self.color);
             }
@@ -100,9 +100,14 @@ impl GraphicDrawable for DrawableLine {
             gl.line_width(self.line_width);
 
             gl.bind_vertex_array(Some(self.vao));
+            gl.depth_func(glow::LEQUAL);
             gl.draw_arrays(glow::LINES, 0, 2);
 
             gl.bind_vertex_array(None);
         };
+    }
+    
+    fn destroy(&self, gl: &glow::Context) {
+        unsafe { gl.delete_vertex_array(self.vao) };
     }
 }

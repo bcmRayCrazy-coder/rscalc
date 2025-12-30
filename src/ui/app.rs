@@ -1,6 +1,8 @@
 use std::sync::{Arc, Mutex};
 
-use crate::ui::graphic::graphic::{GraphicOptions, GraphicRenderer};
+use glam::Vec2;
+
+use crate::ui::graphic::graphic::{GraphicRenderer, GraphicUpdateOptions};
 
 pub struct CalcApp {
     fps: u64,
@@ -12,6 +14,11 @@ pub struct CalcApp {
 pub fn create_ui() -> eframe::Result {
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default().with_inner_size([480.0, 320.0]),
+        // multisampling: 1,
+        depth_buffer: 24,
+        // stencil_buffer: 8,
+        renderer: eframe::Renderer::Glow,
+        hardware_acceleration: eframe::HardwareAcceleration::Required,
         ..Default::default()
     };
     eframe::run_native(
@@ -63,18 +70,29 @@ impl CalcApp {
     fn draw_graphic(&self, ui: &mut egui::Ui) {
         let available_size = ui.available_size();
         let desired_size = egui::Vec2::new(available_size.x, available_size.y);
-        let (rect, _response) = ui.allocate_exact_size(desired_size, egui::Sense::all());
+        let (rect, response) = ui.allocate_exact_size(desired_size, egui::Sense::all());
 
         // Will Use
-        // let _drag = response.drag_motion();
-        // let _click = response.clicked();
+        let drag_motion = response.drag_motion();
+        let drag_button: Option<egui::PointerButton> =
+            if response.dragged_by(egui::PointerButton::Primary) {
+                Some(egui::PointerButton::Primary)
+            } else if response.dragged_by(egui::PointerButton::Middle) {
+                Some(egui::PointerButton::Middle)
+            } else if response.dragged_by(egui::PointerButton::Secondary) {
+                Some(egui::PointerButton::Secondary)
+            } else {
+                None
+            };
 
         let graphic_renderer = self.graphic_renderer.clone();
-        let graphic_options = GraphicOptions {};
+        let graphic_options = GraphicUpdateOptions {
+            drag_motion: Vec2::new(drag_motion.x, drag_motion.y),
+            drag_button,
+        };
         let gl_cb = egui_glow::CallbackFn::new(move |_info, painter| {
             if let Ok(mut graphic_renderer) = graphic_renderer.lock() {
                 graphic_renderer.camera.aspect_ratio = desired_size.x / desired_size.y;
-
                 graphic_renderer.paint(painter.gl(), graphic_options.clone());
             }
         });
@@ -115,5 +133,12 @@ impl eframe::App for CalcApp {
                 egui::Frame::canvas(ui.style()).show(ui, |ui| self.draw_graphic(ui));
                 ctx.request_repaint_after(std::time::Duration::from_millis(1000 / self.fps));
             });
+    }
+
+    fn on_exit(&mut self, gl: Option<&glow::Context>) {
+        println!("Quit App");
+        if let Some(gl) = gl {
+            self.graphic_renderer.lock().unwrap().destroy(gl);
+        }
     }
 }

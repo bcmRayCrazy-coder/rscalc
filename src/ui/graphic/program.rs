@@ -144,6 +144,18 @@ impl ProgramManager {
             ManagedProgram::COMPILED(program) => Some(program.clone()),
         }
     }
+
+    pub fn delete_all_program(&self, gl: &glow::Context) {
+        let mut program_map = self.programs.write().unwrap();
+        for (id, val) in program_map.iter_mut() {
+            if let ManagedProgram::COMPILED(program) = val {
+                unsafe {
+                    gl.delete_program(*program);
+                }
+                println!("Delete program {}.", id);
+            }
+        }
+    }
 }
 
 pub static PROGRAM_MANAGER: Lazy<ProgramManager> = Lazy::new(ProgramManager::new);

@@ -14,7 +14,7 @@ pub struct DrawablePolygon {
     ebo: glow::Buffer,
     pub vertices: Vec<Vec3>,
 
-    ind_count:i32,
+    ind_count: i32,
 
     program: glow::NativeProgram,
 }
@@ -43,7 +43,7 @@ impl DrawablePolygon {
                 vbo,
                 ebo,
                 vertices: Vec::new(),
-                ind_count:0,
+                ind_count: 0,
                 program: PROGRAM_MANAGER
                     .get_program(gl, ProgramId::Default)
                     .expect("Default program not created"),
@@ -61,10 +61,6 @@ impl DrawablePolygon {
             let u8_buffer: &[u8] = bytemuck::cast_slice(&vert_f32[..]);
             gl.buffer_data_u8_slice(glow::ARRAY_BUFFER, u8_buffer, glow::STATIC_DRAW);
 
-            // let indices = vec![
-            //     0, 1, 3, // first Triangle
-            //     1, 2, 3, // second Triangle
-            // ];
             let mut indices = Vec::<i32>::new();
             self.ind_count = 0;
             if self.vertices.len() >= 3 {
@@ -98,9 +94,6 @@ impl DrawablePolygon {
                 }
             }
 
-            println!("{:?}",indices);
-            println!("{}",self.ind_count);
-
             gl.bind_buffer(glow::ELEMENT_ARRAY_BUFFER, Some(self.ebo));
             let u8_buffer = bytemuck::cast_slice(&indices[..]);
             gl.buffer_data_u8_slice(glow::ELEMENT_ARRAY_BUFFER, u8_buffer, glow::STATIC_DRAW);
@@ -133,9 +126,17 @@ impl GraphicDrawable for DrawablePolygon {
             gl.uniform_4_f32_slice(color_location.as_ref(), &self.color);
 
             gl.bind_vertex_array(Some(self.vao));
+            gl.depth_func(glow::LESS);
             gl.draw_elements(glow::TRIANGLES, self.ind_count * 3, glow::UNSIGNED_INT, 0);
 
             gl.bind_vertex_array(None);
         }
+    }
+    fn destroy(&self, gl: &glow::Context) {
+        unsafe {
+            gl.delete_vertex_array(self.vao);
+            gl.delete_buffer(self.vbo);
+            gl.delete_buffer(self.ebo);
+        };
     }
 }
