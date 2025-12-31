@@ -11,6 +11,7 @@ pub fn compile_shader_program(
     program: &glow::NativeProgram,
     vert: &str,
     frag: &str,
+    id: Option<&ProgramId>,
 ) {
     unsafe {
         let vert_shader = gl
@@ -21,7 +22,8 @@ pub fn compile_shader_program(
 
         if !gl.get_shader_compile_status(vert_shader) {
             panic!(
-                "Vert shader compile failed:\n{}",
+                "Vert shader {} compile failed:\n{}",
+                id.or(Some(&ProgramId::Unknown)).unwrap(),
                 gl.get_shader_info_log(vert_shader)
             );
         }
@@ -52,6 +54,7 @@ pub fn compile_shader_program(
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum ProgramId {
+    Unknown,
     Default,
     DrawableLine,
     DrawableArrow,
@@ -63,6 +66,7 @@ impl std::fmt::Display for ProgramId {
             f,
             "({})",
             match self {
+                ProgramId::Unknown => "Unknown",
                 ProgramId::Default => "Default",
                 ProgramId::DrawableLine => "Drawable Line",
                 ProgramId::DrawableArrow => "Drawable Arrow",
@@ -102,6 +106,7 @@ impl ProgramManager {
                 )),
             },
         );
+
         programs.insert(
             ProgramId::DrawableLine,
             ManagedProgram::RAW {
@@ -112,6 +117,20 @@ impl ProgramManager {
                 frag_shader: include_str!(concat!(
                     env!("CARGO_MANIFEST_DIR"),
                     "/static/shader/drawable/line.fsh"
+                )),
+            },
+        );
+
+        programs.insert(
+            ProgramId::DrawableArrow,
+            ManagedProgram::RAW {
+                vert_shader: include_str!(concat!(
+                    env!("CARGO_MANIFEST_DIR"),
+                    "/static/shader/drawable/arrow.vsh"
+                )),
+                frag_shader: include_str!(concat!(
+                    env!("CARGO_MANIFEST_DIR"),
+                    "/static/shader/drawable/arrow.fsh"
                 )),
             },
         );
@@ -133,7 +152,7 @@ impl ProgramManager {
             } => unsafe {
                 println!("Compiling for program {}", id);
                 let program = gl.create_program().expect("Unable to create program");
-                compile_shader_program(gl, &program, vert_shader, frag_shader);
+                compile_shader_program(gl, &program, vert_shader, frag_shader, Some(&id));
 
                 let _ = managed_program;
                 drop(binding);

@@ -2,7 +2,10 @@ use glam::{Mat4, Vec3};
 use glow::HasContext;
 
 use crate::ui::graphic::{
-    camera::GraphicCamera, drawable::drawable::GraphicDrawable, graphic::GraphicMVPMatrix, program::{PROGRAM_MANAGER, ProgramId}
+    camera::GraphicCamera,
+    drawable::drawable::GraphicDrawable,
+    graphic::GraphicMVPMatrix,
+    program::{PROGRAM_MANAGER, ProgramId},
 };
 
 #[derive(Debug, Clone)]
@@ -106,8 +109,11 @@ impl GraphicDrawable for DrawableLine {
             gl.bind_vertex_array(None);
         };
     }
-    
+
     fn destroy(&self, gl: &glow::Context) {
-        unsafe { gl.delete_vertex_array(self.vao) };
+        unsafe {
+            gl.delete_vertex_array(self.vao);
+            gl.delete_buffer(self.vbo);
+        };
     }
 }

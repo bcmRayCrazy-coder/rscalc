@@ -3,7 +3,7 @@ use glow::HasContext;
 
 use crate::ui::graphic::{
     camera::GraphicCamera,
-    drawable::{drawable::GraphicDrawable, line::DrawableLine, polygon::DrawablePolygon},
+    drawable::{arrow::DrawableArrow, drawable::GraphicDrawable, line::DrawableLine, polygon::DrawablePolygon},
     program::{PROGRAM_MANAGER, ProgramId},
 };
 
@@ -55,92 +55,55 @@ pub struct GraphicRenderer {
 
     pub drag_scale: f32,
 
-    program: glow::NativeProgram,
     last_frame_time: std::time::Instant,
     frame_time: f32,
     depth_buffer: Option<glow::Renderbuffer>,
 
-    vao: glow::VertexArray,
-
     test_line: DrawableLine,
     test_polygon: DrawablePolygon,
+    test_arrow: DrawableArrow,
 }
 
 impl GraphicRenderer {
     pub fn default<'a>(cc: &'a eframe::CreationContext<'a>) -> Option<Self> {
         let gl = cc.gl.as_ref().expect("Unable to use gl");
 
-        let shader_program = PROGRAM_MANAGER
-            .get_program(gl, ProgramId::Default)
-            .expect("Default program not created");
+        let mut test_line = DrawableLine::new(gl);
+        test_line.set_color([1.0, 0.0, 1.0, 1.0]);
+        test_line.set_points(gl, Vec3::new(0.0, 0.0, 0.0), Vec3::new(0.0, 0.0, 0.0));
+        test_line.set_program(gl, &ProgramId::Default).unwrap();
 
-        unsafe {
-            let vao = gl
-                .create_vertex_array()
-                .expect("Unable to create vertex array");
+        let mut test_polygon = DrawablePolygon::new(gl);
+        test_polygon.set_color([1.0, 0.0, 0.0, 1.0]);
+        test_polygon.set_verts(
+            gl,
+            &vec![
+                Vec3::new(0.0, 0.5, 1.0),
+                Vec3::new(0.3, 0.3, 1.0),
+                Vec3::new(0.5, 0.0, 1.0),
+                Vec3::new(0.3, -0.3, 1.0),
+                Vec3::new(0.0, -0.5, 1.0),
+                Vec3::new(-0.3, -0.3, 1.0),
+                Vec3::new(-0.5, 0.0, 1.0),
+                Vec3::new(-0.3, 0.3, 1.0),
+            ],
+        );
 
-            let vbo = gl.create_buffer().expect("Unable to create buffer");
-            let ebo = gl.create_buffer().expect("Unable to create buffer");
+        let mut test_arrow = DrawableArrow::new(gl);
+        test_arrow.set_color([0.0,0.0,1.0,1.0]);
+        test_arrow.set_line_width(4.0);
+        test_arrow.set_points(gl, Vec3::new(0.0, 0.0, -1.0), Vec3::new(1.0, 1.5, 0.5));
 
-            let vertices: [f32; 12] = [
-                0.5, 0.5, 0.5, // top right
-                0.5, -0.5, 0.5, // bottom right
-                -0.5, -0.5, 0.5, // bottom left
-                -0.5, 0.5, 0.5, // top left
-            ];
-            let indices = [
-                0, 1, 3, // first Triangle
-                1, 2, 3, // second Triangle
-            ];
-
-            gl.bind_vertex_array(Some(vao));
-
-            gl.bind_buffer(glow::ARRAY_BUFFER, Some(vbo));
-            let u8_buffer = bytemuck::cast_slice(&vertices[..]);
-            gl.buffer_data_u8_slice(glow::ARRAY_BUFFER, u8_buffer, glow::STATIC_DRAW);
-
-            gl.bind_buffer(glow::ELEMENT_ARRAY_BUFFER, Some(ebo));
-            let u8_buffer = bytemuck::cast_slice(&indices[..]);
-            gl.buffer_data_u8_slice(glow::ELEMENT_ARRAY_BUFFER, u8_buffer, glow::STATIC_DRAW);
-
-            gl.vertex_attrib_pointer_f32(0, 3, glow::FLOAT, false, 0, 0);
-            gl.enable_vertex_attrib_array(0);
-
-            gl.bind_vertex_array(None);
-
-            let mut line = DrawableLine::new(gl);
-            line.set_color([1.0, 0.0, 1.0, 1.0]);
-            line.set_points(gl, Vec3::new(0.0, 0.0, 0.0), Vec3::new(0.0, 0.0, 0.0));
-            line.set_program(gl, &ProgramId::Default).unwrap();
-
-            let mut polygon = DrawablePolygon::new(gl);
-            polygon.set_color([1.0, 0.0, 0.0, 1.0]);
-            polygon.set_verts(
-                gl,
-                &vec![
-                    Vec3::new(0.0, 0.5, 1.0),
-                    Vec3::new(0.3, 0.3, 1.0),
-                    Vec3::new(0.5, 0.0, 1.0),
-                    Vec3::new(0.3, -0.3, 1.0),
-                    Vec3::new(0.0, -0.5, 1.0),
-                    Vec3::new(-0.3, -0.3, 1.0),
-                    Vec3::new(-0.5, 0.0, 1.0),
-                    Vec3::new(-0.3, 0.3, 1.0),
-                ],
-            );
-
-            Some(Self {
-                camera: GraphicCamera::default(),
-                drag_scale: 0.05,
-                program: shader_program,
-                last_frame_time: std::time::Instant::now(),
-                frame_time: 0.0f32,
-                depth_buffer: None,
-                vao,
-                test_line: line,
-                test_polygon: polygon,
-            })
-        }
+        Some(Self {
+            camera: GraphicCamera::default(),
+            drag_scale: 0.05,
+            last_frame_time: std::time::Instant::now(),
+            frame_time: 0.0f32,
+            depth_buffer: None,
+            test_line,
+            test_polygon,
+            test_arrow
+        })
     }
 
     pub fn paint(&mut self, gl: &glow::Context, opt: GraphicUpdateOptions) {
@@ -149,7 +112,7 @@ impl GraphicRenderer {
         self.frame_time += elapsed_time;
 
         // Update
-        let green_val = ((self.frame_time).sin() / 2.0) + 0.5;
+        // let green_val = ((self.frame_time).sin() / 2.0) + 0.5;
         let mut end_point = self.test_line.get_end_point();
         end_point.x = (self.frame_time * 3.0).cos() / 2.0;
         end_point.y = (self.frame_time * 3.0).sin() / 2.0;
@@ -186,22 +149,10 @@ impl GraphicRenderer {
             gl.depth_mask(true);
             gl.depth_range_f32(0.0, 1.0);
 
-            gl.use_program(Some(self.program));
-
-            let mvp_matrix = GraphicMVPMatrix::from_camera(&self.camera, Mat4::IDENTITY);
-            mvp_matrix.assign_gl_program(gl, self.program);
-
-            let my_color = gl.get_uniform_location(self.program, "color");
-            gl.uniform_4_f32(my_color.as_ref(), 0.0, green_val, 0.0, 1.0);
-
-            // gl.bind_buffer(glow::ARRAY_BUFFER, Some(self.vbo));
-            gl.bind_vertex_array(Some(self.vao));
-            gl.draw_elements(glow::TRIANGLES, 6, glow::UNSIGNED_INT, 0);
-
-            gl.bind_vertex_array(None);
-
             self.test_polygon.draw(gl, &self.camera);
             self.test_line.draw(gl, &self.camera);
+            self.test_arrow.draw(gl, &self.camera);
+
             gl.use_program(None);
         }
         self.last_frame_time = now;
@@ -210,7 +161,7 @@ impl GraphicRenderer {
     pub fn destroy(&mut self, gl: &glow::Context) {
         PROGRAM_MANAGER.delete_all_program(gl);
         unsafe {
-            gl.delete_vertex_array(self.vao);
+            // gl.delete_vertex_array(self.vao);
 
             if let Some(rb) = self.depth_buffer.take() {
                 gl.delete_renderbuffer(rb);

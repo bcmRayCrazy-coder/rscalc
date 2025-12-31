@@ -17,6 +17,7 @@ pub fn create_ui() -> eframe::Result {
         // multisampling: 1,
         depth_buffer: 24,
         // stencil_buffer: 8,
+        multisampling: 2,
         renderer: eframe::Renderer::Glow,
         hardware_acceleration: eframe::HardwareAcceleration::Required,
         ..Default::default()
