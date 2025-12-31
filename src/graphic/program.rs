@@ -5,6 +5,15 @@ use std::{
 
 use glow::{HasContext, NativeProgram};
 use once_cell::sync::Lazy;
+use strum::Display;
+
+#[derive(Debug, Display, Clone, Eq, PartialEq, Hash)]
+pub enum ProgramId {
+    Unknown,
+    Default,
+    DrawableLine,
+    DrawableArrow,
+}
 
 pub fn compile_shader_program(
     gl: &glow::Context,
@@ -52,28 +61,22 @@ pub fn compile_shader_program(
     }
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Hash)]
-pub enum ProgramId {
-    Unknown,
-    Default,
-    DrawableLine,
-    DrawableArrow,
-}
 
-impl std::fmt::Display for ProgramId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "({})",
-            match self {
-                ProgramId::Unknown => "Unknown",
-                ProgramId::Default => "Default",
-                ProgramId::DrawableLine => "Drawable Line",
-                ProgramId::DrawableArrow => "Drawable Arrow",
-            }
-        )
-    }
-}
+
+// impl std::fmt::Display for ProgramId {
+//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+//         write!(
+//             f,
+//             "({})",
+//             match self {
+//                 ProgramId::Unknown => "Unknown",
+//                 ProgramId::Default => "Default",
+//                 ProgramId::DrawableLine => "Drawable Line",
+//                 ProgramId::DrawableArrow => "Drawable Arrow",
+//             }
+//         )
+//     }
+// }
 
 #[derive(Clone)]
 enum ManagedProgram {

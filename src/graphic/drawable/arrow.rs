@@ -3,7 +3,8 @@ use std::f32::consts::PI;
 use glam::{Mat4, Vec2, Vec3, Vec4};
 use glow::HasContext;
 
-use crate::ui::graphic::{
+use crate::graphic::{
+    camera::GraphicCamera,
     drawable::drawable::GraphicDrawable,
     graphic::GraphicMVPMatrix,
     program::{PROGRAM_MANAGER, ProgramId},
@@ -95,7 +96,7 @@ impl DrawableArrow {
 }
 
 impl GraphicDrawable for DrawableArrow {
-    fn draw(&self, gl: &glow::Context, camera: &crate::ui::graphic::camera::GraphicCamera) {
+    fn draw(&self, gl: &glow::Context, camera: &GraphicCamera) {
         unsafe {
             gl.use_program(Some(self.program));
             let mvp_transform = GraphicMVPMatrix::from_camera(camera, Mat4::IDENTITY);

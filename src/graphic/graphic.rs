@@ -1,7 +1,7 @@
 use glam::{Mat4, Vec2, Vec3};
 use glow::HasContext;
 
-use crate::ui::graphic::{
+use crate::graphic::{
     camera::GraphicCamera,
     drawable::{arrow::DrawableArrow, drawable::GraphicDrawable, line::DrawableLine, polygon::DrawablePolygon},
     program::{PROGRAM_MANAGER, ProgramId},

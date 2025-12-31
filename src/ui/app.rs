@@ -2,7 +2,7 @@ use std::sync::{Arc, Mutex};
 
 use glam::Vec2;
 
-use crate::ui::graphic::graphic::{GraphicRenderer, GraphicUpdateOptions};
+use crate::graphic::graphic::{GraphicRenderer, GraphicUpdateOptions};
 
 pub struct CalcApp {
     fps: u64,

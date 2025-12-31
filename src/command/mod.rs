@@ -1,3 +1,3 @@
 pub mod command;
-pub mod graphic;
 pub mod ui;
+pub mod manager;
