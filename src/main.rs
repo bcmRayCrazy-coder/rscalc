@@ -1,6 +1,6 @@
 use rscalc::ui::app::create_ui;
 
 fn main() -> eframe::Result {
-    println!("Hello, world!");
+    println!("Start App");
     create_ui()
 }

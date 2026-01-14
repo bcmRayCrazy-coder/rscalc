@@ -2,7 +2,10 @@ use std::sync::{Arc, Mutex};
 
 use glam::Vec2;
 
-use crate::graphic::graphic::{GraphicRenderer, GraphicUpdateOptions};
+use crate::{
+    graphic::graphic::{GraphicRenderer, GraphicUpdateOptions},
+    ui::image::IMAGE_MANAGER,
+};
 
 pub struct CalcApp {
     fps: u64,
@@ -57,6 +60,7 @@ fn setup_fonts(ctx: &egui::Context) {
 impl CalcApp {
     pub fn default<'a>(cc: &'a eframe::CreationContext<'a>) -> Option<Self> {
         setup_fonts(&cc.egui_ctx);
+        egui_extras::install_image_loaders(&cc.egui_ctx);
         // cc.egui_ctx.set_visuals(egui::Visuals::light());
         Some(Self {
             fps: 120,
@@ -110,6 +114,11 @@ impl eframe::App for CalcApp {
         egui::TopBottomPanel::top("top_bar_panel").show(ctx, |ui| {
             ui.vertical_centered_justified(|ui| {
                 ui.heading("Top Pannel");
+                ui.add(
+                    IMAGE_MANAGER
+                        .widget(&ctx, "icon/sw.png", image::ImageFormat::Png)
+                        .fit_to_exact_size(egui::Vec2::new(32.0, 32.0)),
+                );
             });
         });
         egui::TopBottomPanel::bottom("bottom_info_bar_panel")
